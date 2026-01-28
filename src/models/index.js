@@ -5,3 +5,4 @@ module.exports.Team = require('./team.model');
 module.exports.Organization = require('./organization.model');
 module.exports.Lead = require('./lead.model');
 module.exports.Deal = require('./deal.model');
+module.exports.Status = require('./status.model');

@@ -21,6 +21,7 @@ const createDeal = {
     ).optional(),
     tags: Joi.array().items(Joi.string().trim()).optional(),
     expectedCloseDate: Joi.date().optional(),
+    actualCloseDate: Joi.date().optional(),
   }),
 };
 

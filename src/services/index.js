@@ -6,3 +6,4 @@ module.exports.roleService = require('./role.service');
 module.exports.organizationService = require('./organization.service');
 module.exports.leadService = require('./lead.service');
 module.exports.dealService = require('./deal.service');
+module.exports.statusService = require('./status.service');
