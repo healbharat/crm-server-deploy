@@ -7,8 +7,12 @@ const config = require('../config/config');
 
 const registerUser = catchAsync(async (req, res) => {
   const user = await authService.registerUser(req.body);
+  
+  // Exclude sensitive fields from user object
+  const { password: _, permissions, userSettings, ...sanitizedUser } = user;
+  
   res.status(200).json({
-    user,
+    user: sanitizedUser,
     message: 'User registered successfully',
   });
 });
@@ -23,8 +27,12 @@ const loginUser = catchAsync(async (req, res) => {
   //   await settingService.initializeSettings(orgId, userId);
   //   await settingService.initializePermissionSettings(orgId, userId);
   // }
+  
+  // Exclude sensitive fields from user object
+  const { password: _, permissions, userSettings, ...sanitizedUser } = user;
+  
   res.status(200).json({
-    user,
+    user: sanitizedUser,
     tokens,
     message: 'User logged in successfully',
   });
@@ -72,8 +80,12 @@ const googleLoginUser = catchAsync(async (req, res) => {
     await settingService.initializeSettings(user.orgId, user._id ? user._id : user.id);
     await settingService.initializePermissionSettings(user.orgId, user._id ? user._id : user.id);
   }
+  
+  // Exclude sensitive fields from user object
+  const { password: _, permissions, userSettings, ...sanitizedUser } = user;
+  
   res.status(200).json({
-    user,
+    user: sanitizedUser,
     tokens,
     message: 'User logged in with Google successfully',
   });
@@ -83,8 +95,12 @@ const googleRegisterUser = catchAsync(async (req, res) => {
   const { token, organizationName } = req.body;
   try {
     const { user, tokens } = await authService.googleRegisterUser(token, organizationName);
+    
+    // Exclude sensitive fields from user object
+    const { password: _, permissions, userSettings, ...sanitizedUser } = user;
+    
     res.status(200).json({
-      user,
+      user: sanitizedUser,
       tokens,
       message: 'User registered with Google successfully',
     });
