@@ -114,7 +114,6 @@ const getAllRoles = catchAsync(async (req, res) => {
 });
 const getUsers = catchAsync(async (req, res) => {
   let filter = { ...req.queryFilters, ...pick(req.query, ['query', 'role', 'status', 'searchTerm']) };
-  filter = applyFilter(filter, '_id');
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
   if (filter.status === 'Deleted') {
     if (!options.sortBy) {
@@ -124,7 +123,6 @@ const getUsers = catchAsync(async (req, res) => {
     res.send(result);
   } else {
     filter.status = { $ne: 'Deleted' };
-    delete filter.data;
     options.populate = [{path: 'roles', select: 'roleName id'}];
     const result = await userService.queryUsers(filter, options);
     res.send(result);

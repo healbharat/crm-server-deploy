@@ -87,9 +87,9 @@ const loginUser = async (email, password) => {
   if (user.status !== 'Active') {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Your account is not active. Please contact support.');
   }
-  if (!user.isEmailVerified) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Please verify your email address. Check your inbox for the verification link.');
-  }
+  // if (!user.isEmailVerified) {
+  //   throw new ApiError(httpStatus.UNAUTHORIZED, 'Please verify your email address. Check your inbox for the verification link.');
+  // }
   const isPasswordMatch = await user.isPasswordMatch(password);
   if (!isPasswordMatch) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid email or password');

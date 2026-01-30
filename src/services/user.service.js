@@ -95,11 +95,12 @@ const queryUsers = async (filter, options) => {
   let query = {};
 
   // Add search by name functionality
-  if (filter.query) {
-    query = {
-      ...query,
-      name: { $regex: filter.query, $options: 'i' },
-    };
+  const searchTerm = filter.query || filter.searchTerm;
+  if (searchTerm) {
+    query.$or = [
+      { name: { $regex: searchTerm, $options: 'i' } },
+      { email: { $regex: searchTerm, $options: 'i' } },
+    ];
   }
 
   // Add other filters as needed
