@@ -29,9 +29,8 @@ const dealSchema = mongoose.Schema({
     required: true,
   },
   status: {
-    type: String,
-    enum: ['Qualification', 'Needs Analysis', 'Value Proposition', 'Id. Decision Makers', 'Perception Analysis', 'Proposal/Price Quote', 'Negotiation/Review', 'Closed Won', 'Closed Lost'],
-    default: 'Qualification',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Status',
   },
   tags: [
     {

@@ -35,9 +35,8 @@ const leadSchema = mongoose.Schema({
     trim: true,
   },
   status: {
-    type: String,
-    enum: ['New', 'Contacted', 'Qualified', 'Converted', 'Lost', 'Dead'],
-    default: 'New',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Status',
   },
   source: {
     type: String,
