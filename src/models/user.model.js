@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const { toJSON, paginate, baseModelPlugin } = require('./plugins');
-const tenantPlugin = require('./plugins/tenantPlugin');
 
 const userSchema = mongoose.Schema({
   name: {
@@ -32,6 +31,11 @@ const userSchema = mongoose.Schema({
       },
       message: 'Password is required for registration',
     },
+  },
+  department: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Department',
+    required: true,
   },
   roles: [
     {
@@ -65,20 +69,20 @@ userSchema.plugin(baseModelPlugin, {
   defaultUpdatedBy: 'System',
 });
 // add plugin that converts mongoose to json
-userSchema.plugin(tenantPlugin);
 userSchema.plugin(toJSON);
 userSchema.plugin(paginate);
 
-userSchema.index({ orgId: 1, email: 1 }); // Multi-tenant + email lookups
-userSchema.index({ orgId: 1, status: 1 }); // Multi-tenant + status filtering
-userSchema.index({ orgId: 1, name: 'text' }); // Text search on names
-userSchema.index({ orgId: 1, roles: 1 }); // Role-based filtering
-userSchema.index({ orgId: 1, isOwner: 1 }); // Owner filtering
-userSchema.index({ orgId: 1, isEmailVerified: 1 }); // Email verification status
-userSchema.index({ orgId: 1, createdAt: -1 }); // Date-based queries
-userSchema.index({ orgId: 1, status: 1, createdAt: -1 }); // Status + date queries
-userSchema.index({ orgId: 1, roles: 1, status: 1 }); // Role + status filtering
-userSchema.index({ email: 1 }); // Global email lookup (for authentication)
+// Indexes for efficient queries
+userSchema.index({ email: 1 }); // Email lookup (for authentication)
+userSchema.index({ department: 1 }); // Department-based filtering
+userSchema.index({ department: 1, status: 1 }); // Department + status filtering
+userSchema.index({ department: 1, roles: 1 }); // Department + role-based filtering
+userSchema.index({ name: 'text' }); // Text search on names
+userSchema.index({ status: 1 }); // Status filtering
+userSchema.index({ roles: 1 }); // Role-based filtering
+userSchema.index({ isOwner: 1 }); // Owner filtering
+userSchema.index({ isEmailVerified: 1 }); // Email verification status
+userSchema.index({ createdAt: -1 }); // Date-based queries
 
 /**
  * Check if email is taken
@@ -114,7 +118,7 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.statics.getLeadUsers = async function (filter, orgId) {
+userSchema.statics.getLeadUsers = async function (filter, departmentId) {
   const pipeline = [];
 
   // Step 1: Match users based on filter criteria
@@ -126,8 +130,8 @@ userSchema.statics.getLeadUsers = async function (filter, orgId) {
     };
   }
 
-  if (orgId) {
-    matchConditions.orgId = mongoose.Types.ObjectId(orgId);
+  if (departmentId) {
+    matchConditions.department = mongoose.Types.ObjectId(departmentId);
   }
 
   // Exclude users with status 'Deleted'
@@ -164,7 +168,7 @@ userSchema.statics.getLeadUsers = async function (filter, orgId) {
   return result;
 };
 
-userSchema.statics.getDealUsers = async function (filter, orgId) {
+userSchema.statics.getDealUsers = async function (filter, departmentId) {
   const pipeline = [];
 
   // Step 1: Build match conditions
@@ -176,8 +180,8 @@ userSchema.statics.getDealUsers = async function (filter, orgId) {
     };
   }
 
-  if (orgId) {
-    matchConditions.orgId = mongoose.Types.ObjectId(orgId);
+  if (departmentId) {
+    matchConditions.department = mongoose.Types.ObjectId(departmentId);
   }
 
   // Exclude users with status 'Deleted'

@@ -4,6 +4,8 @@ const authValidation = require('../validations/auth.validation');
 const authController = require('../controllers/auth.controller');
 const verifyToken = require('../middlewares/verifyToken');
 const checkUserExists = require('../middlewares/checkUserExists');
+const departmentValidation = require('../validations/department.validation');
+const departmentController = require('../controllers/department.controller');
 
 const authRateLimiter = require('../middlewares/rateLimiter'); // Import the rate limiter
 
@@ -17,6 +19,11 @@ router.post(
   authRateLimiter,
   validate(authValidation.forgotPassword),
   authController.forgotPassword
+);
+
+router.get('/get-departments',
+  validate(departmentValidation.getDepartments),
+  departmentController.getDepartments
 );
 router.post('/reset-password', validate(authValidation.resetPassword), authController.resetPassword);
 router.post('/google-login', validate(authValidation.googleLogin), authController.googleLoginUser);

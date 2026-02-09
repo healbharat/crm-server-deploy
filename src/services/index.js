@@ -4,6 +4,7 @@ module.exports.userService = require('./user.service');
 module.exports.userRoleService = require('./userRole.service');
 module.exports.roleService = require('./role.service');
 module.exports.organizationService = require('./organization.service');
+module.exports.departmentService = require('./department.service');
 module.exports.leadService = require('./lead.service');
 module.exports.dealService = require('./deal.service');
 module.exports.statusService = require('./status.service');

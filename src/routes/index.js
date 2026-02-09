@@ -4,6 +4,7 @@ const authRoute = require('./auth.route.js');
 const leadRoute = require('./lead.route.js');
 const dealRoute = require('./deal.route.js');
 const statusRoute = require('./status.route.js');
+const departmentRoute = require('./department.route.js');
 
 const router = express.Router();
 
@@ -15,6 +16,10 @@ const defaultRoutes = [
   {
     path: '/users',
     route: userRoute,
+  },
+  {
+    path: '/departments',
+    route: departmentRoute,
   },
   {
     path: '/leads',

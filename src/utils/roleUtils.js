@@ -114,39 +114,57 @@ const hasAllPermissions = (userRoles, permissions) => {
 };
 
 /**
- * Get user's data access level based on permissions
+ * Get user's data access level based on permissions and department
  * Returns the appropriate filter for data access
  * @param {Array} userRoles - Array of role objects with populated permissions
  * @param {string} userId - User ID for filtering
+ * @param {string|Array} userDepartment - User's department ID(s)
+ * @param {boolean} isManager - Whether user is a department manager
  * @returns {Object} - Data access configuration
  */
-const getUserDataAccess = (userRoles, userId) => {
+const getUserDataAccess = (userRoles, userId, userDepartment = null, isManager = false) => {
   if (!userRoles || userRoles.length === 0) {
-    return { scope: 'own', userIds: [userId] };
+    return { 
+      scope: 'own', 
+      userIds: [userId],
+      departments: userDepartment ? (Array.isArray(userDepartment) ? userDepartment : [userDepartment]) : []
+    };
   }
 
-  // Check for global organization access (SuperAdmin only)
+  // Check for global access (SuperAdmin only)
   if (hasPermission(userRoles, 'canViewOrganizations')) {
-    return { scope: 'global', userIds: null };
+    return { scope: 'global', userIds: null, departments: null };
   }
 
-  // Check for own organization access (Admin role)
+  // Check for admin access (can see all data)
   if (hasPermission(userRoles, 'canViewOwnOrganization')) {
-    return { scope: 'organization', userIds: null };
+    return { scope: 'admin', userIds: null, departments: null };
+  }
+
+  // Check for department manager access
+  if (isManager || hasPermission(userRoles, 'canManageTeams')) {
+    return { 
+      scope: 'department', 
+      userIds: userId,
+      departments: userDepartment ? (Array.isArray(userDepartment) ? userDepartment : [userDepartment]) : []
+    };
   }
 
   // Check for team-level access
-  if (hasPermission(userRoles, 'canViewTeams') || hasPermission(userRoles, 'canManageTeams')) {
-    return { scope: 'team', userIds: userId };
-  }
-
-  // Check for own user access
-  if (hasPermission(userRoles, 'canViewManageOwnUser') || hasPermission(userRoles, 'canViewUsers')) {
-    return { scope: 'own', userIds: [userId] };
+  if (hasPermission(userRoles, 'canViewTeams')) {
+    return { 
+      scope: 'team', 
+      userIds: userId,
+      departments: userDepartment ? (Array.isArray(userDepartment) ? userDepartment : [userDepartment]) : []
+    };
   }
 
   // Default to own data only
-  return { scope: 'own', userIds: [userId] };
+  return { 
+    scope: 'own', 
+    userIds: [userId],
+    departments: userDepartment ? (Array.isArray(userDepartment) ? userDepartment : [userDepartment]) : []
+  };
 };
 
 /**

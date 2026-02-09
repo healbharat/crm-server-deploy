@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const { toJSON, paginate, baseModelPlugin } = require('./plugins');
-const tenantPlugin = require('./plugins/tenantPlugin');
 
 const leadSchema = mongoose.Schema({
   firstName: {
@@ -34,6 +33,12 @@ const leadSchema = mongoose.Schema({
     type: String,
     trim: true,
   },
+  departments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Department',
+    },
+  ],
   status: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Status',
@@ -112,21 +117,23 @@ leadSchema.plugin(baseModelPlugin, {
   defaultUpdatedBy: 'System',
 });
 
-leadSchema.plugin(tenantPlugin);
 leadSchema.plugin(toJSON);
 leadSchema.plugin(paginate);
 
 // Indexes for efficient queries
-leadSchema.index({ orgId: 1, email: 1 }); // Multi-tenant + email lookups
-leadSchema.index({ orgId: 1, status: 1 }); // Multi-tenant + status filtering
-leadSchema.index({ orgId: 1, assignedTo: 1 }); // Multi-tenant + assignedTo filtering
-leadSchema.index({ orgId: 1, source: 1 }); // Multi-tenant + source filtering
-leadSchema.index({ orgId: 1, company: 'text', firstName: 'text', lastName: 'text' }); // Text search
-leadSchema.index({ orgId: 1, createdAt: -1 }); // Date-based queries
-leadSchema.index({ orgId: 1, status: 1, createdAt: -1 }); // Status + date queries
-leadSchema.index({ orgId: 1, assignedTo: 1, status: 1 }); // AssignedTo + status filtering
-leadSchema.index({ orgId: 1, isConverted: 1 }); // Conversion status filtering
-leadSchema.index({ orgId: 1, value: -1 }); // Value-based sorting
+leadSchema.index({ departments: 1 }); // Department-based filtering
+leadSchema.index({ departments: 1, email: 1 }); // Department + email lookups
+leadSchema.index({ departments: 1, status: 1 }); // Department + status filtering
+leadSchema.index({ departments: 1, assignedTo: 1 }); // Department + assignedTo filtering
+leadSchema.index({ departments: 1, source: 1 }); // Department + source filtering
+leadSchema.index({ departments: 1, createdBy: 1 }); // Department + createdBy filtering
+leadSchema.index({ company: 'text', firstName: 'text', lastName: 'text' }); // Text search
+leadSchema.index({ createdAt: -1 }); // Date-based queries
+leadSchema.index({ status: 1, createdAt: -1 }); // Status + date queries
+leadSchema.index({ assignedTo: 1, status: 1 }); // AssignedTo + status filtering
+leadSchema.index({ createdBy: 1 }); // CreatedBy filtering
+leadSchema.index({ isConverted: 1 }); // Conversion status filtering
+leadSchema.index({ value: -1 }); // Value-based sorting
 
 /**
  * @typedef Lead

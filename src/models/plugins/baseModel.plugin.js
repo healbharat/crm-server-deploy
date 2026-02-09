@@ -10,11 +10,6 @@ module.exports = function baseModelPlugin(schema, options = {}) {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    orgId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Organization',
-      required: options.orgIdRequired !== false,
-    },
     updatedAt: {
       type: Date,
     },

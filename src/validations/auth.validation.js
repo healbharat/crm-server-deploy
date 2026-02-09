@@ -6,7 +6,7 @@ const register = {
     email: Joi.string().required().email(),
     password: Joi.string().required().custom(password),
     name: Joi.string().required(),
-    organizationName: Joi.string().required(),
+    department: Joi.string().custom(objectId).required(),
     address: Joi.object({
       street: Joi.string().allow(null, ''),
       city: Joi.string().allow(null, ''),
@@ -14,7 +14,6 @@ const register = {
       postalCode: Joi.string().allow(null, ''),
       country: Joi.string().allow(null, ''),
     }).optional(),
-    organizationPhone: Joi.string(),
     recaptchaResponse: Joi.string().allow(null, ''),
   }),
 };

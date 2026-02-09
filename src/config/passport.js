@@ -10,7 +10,7 @@ const options = {
 const jwtStrategy = new JwtStrategy(options, async (payload, done) => {
   try {
     const userId = payload.sub;
-    const orgId = payload.orgId;
+    // const orgId = payload.orgId;
 
     // Try to get user data from cache first
     let userData;
@@ -20,13 +20,9 @@ const jwtStrategy = new JwtStrategy(options, async (payload, done) => {
       // Fallback to database if cache miss
       userData = await User.findOne({
         _id: userId,
-        orgId: orgId,
       })
         .populate('roles', 'roleName permissions')
-        .populate({
-          path: 'orgId',
-          options: { skipOrgIdCheck: true },
-        })
+        .populate('department', 'name')
         .lean();
       
       if (!userData) {
@@ -37,9 +33,9 @@ const jwtStrategy = new JwtStrategy(options, async (payload, done) => {
     }
 
     // Validate organization
-    if (userData.orgId && userData.orgId._id && userData.orgId._id.toString() !== orgId) {
-      return done(null, false, { message: 'Invalid organization' });
-    }
+    // if (userData.orgId && userData.orgId._id && userData.orgId._id.toString() !== orgId) {
+    //   return done(null, false, { message: 'Invalid organization' });
+    // }
 
     // Check if user is active
     if (userData.status !== 'Active') {
@@ -47,12 +43,12 @@ const jwtStrategy = new JwtStrategy(options, async (payload, done) => {
     }
 
     // Ensure orgId structure matches what middleware expects
-    if (userData.orgId && userData.orgId._id) {
-      userData.orgId = {
-        id: userData.orgId._id,
-        name: userData.orgId.name || userData.orgId._id
-      };
-    }
+    // if (userData.orgId && userData.orgId._id) {
+    //   userData.orgId = {
+    //     id: userData.orgId._id,
+    //     name: userData.orgId.name || userData.orgId._id
+    //   };
+    // }
 
     return done(null, userData);
   } catch (error) {

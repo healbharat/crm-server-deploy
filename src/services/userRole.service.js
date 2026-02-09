@@ -171,15 +171,23 @@ const userHasAllPermissions = (user, permissions) => {
 };
 
 /**
- * Get user's data access configuration based on permissions
+ * Get user's data access configuration based on permissions and department
  * @param {User} user - User object (can be from req.user)
+ * @param {boolean} isManager - Whether user is a department manager
  * @returns {Object} - Data access configuration
  */
-const getUserDataAccessConfig = (user) => {
+const getUserDataAccessConfig = (user, isManager = false) => {
   if (!user || !user.roles || user.roles.length === 0) {
-    return { scope: 'own', userIds: [user.id] };
+    const userDepartment = user?.department?._id || user?.department;
+    return { 
+      scope: 'own', 
+      userIds: [user.id],
+      departments: userDepartment ? [userDepartment] : []
+    };
   }
-  return getUserDataAccess(user.roles, user.id);
+  
+  const userDepartment = user.department?._id || user.department;
+  return getUserDataAccess(user.roles, user.id, userDepartment, isManager);
 };
 
 module.exports = {

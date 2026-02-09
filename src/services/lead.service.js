@@ -25,20 +25,39 @@ const createLead = async (leadBody) => {
 const queryLeads = async (filter, options) => {
   let query = {};
 
-  // Preserve orgId from filter if it exists (tenant plugin will handle it if not present)
-  if (filter.orgId) {
-    query.orgId = filter.orgId;
+  // Copy all filter conditions to query
+  if (filter.departments) {
+    query.departments = filter.departments;
+  }
+
+  if (filter.$and) {
+    query.$and = filter.$and;
+  }
+
+  if (filter.$or) {
+    query.$or = filter.$or;
+  }
+
+  if (filter.createdBy) {
+    query.createdBy = filter.createdBy;
   }
 
   // Add search functionality
   if (filter.query || filter.searchTerm) {
     const searchTerm = filter.query || filter.searchTerm;
-    query.$or = [
+    const searchConditions = [
       { firstName: { $regex: searchTerm, $options: 'i' } },
       { lastName: { $regex: searchTerm, $options: 'i' } },
       { company: { $regex: searchTerm, $options: 'i' } },
       { email: { $regex: searchTerm, $options: 'i' } },
     ];
+    
+    if (query.$or) {
+      query.$and = query.$and || [];
+      query.$and.push({ $or: searchConditions });
+    } else {
+      query.$or = searchConditions;
+    }
   }
 
   // Add status filter
@@ -67,6 +86,7 @@ const queryLeads = async (filter, options) => {
   }
 
   options.populate = [
+    { path: 'departments', select: 'name' },
     { path: 'assignedTo', select: 'name email' },
     { path: 'createdBy', select: 'name email' },
     { path: 'updatedBy', select: 'name email' },
@@ -84,6 +104,7 @@ const queryLeads = async (filter, options) => {
  */
 const getLeadById = async (id) => {
   return Lead.findById(id)
+    .populate({ path: 'departments', select: 'name' })
     .populate({ path: 'assignedTo', select: 'name email' })
     .populate({ path: 'createdBy', select: 'name email' })
     .populate({ path: 'updatedBy', select: 'name email' })

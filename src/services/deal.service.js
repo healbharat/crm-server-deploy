@@ -25,18 +25,37 @@ const createDeal = async (dealBody) => {
 const queryDeals = async (filter, options) => {
   let query = {};
 
-  // Preserve orgId from filter if it exists (tenant plugin will handle it if not present)
-  if (filter.orgId) {
-    query.orgId = filter.orgId;
+  // Copy all filter conditions to query
+  if (filter.departments) {
+    query.departments = filter.departments;
+  }
+
+  if (filter.$and) {
+    query.$and = filter.$and;
+  }
+
+  if (filter.$or) {
+    query.$or = filter.$or;
+  }
+
+  if (filter.createdBy) {
+    query.createdBy = filter.createdBy;
   }
 
   // Add search functionality
   if (filter.query || filter.searchTerm) {
     const searchTerm = filter.query || filter.searchTerm;
-    query.$or = [
+    const searchConditions = [
       { name: { $regex: searchTerm, $options: 'i' } },
       { description: { $regex: searchTerm, $options: 'i' } },
     ];
+    
+    if (query.$or) {
+      query.$and = query.$and || [];
+      query.$and.push({ $or: searchConditions });
+    } else {
+      query.$or = searchConditions;
+    }
   }
 
   // Add status filter
@@ -47,11 +66,6 @@ const queryDeals = async (filter, options) => {
   // Add lead filter
   if (filter.lead) {
     query.lead = filter.lead;
-  }
-
-  // Add createdBy filter
-  if (filter.createdBy) {
-    query.createdBy = filter.createdBy;
   }
 
   // Handle _id filter for single or multiple IDs
@@ -73,6 +87,7 @@ const queryDeals = async (filter, options) => {
   }
 
   options.populate = [
+    { path: 'departments', select: 'name' },
     { path: 'lead', select: 'firstName lastName email company status' },
     { path: 'createdBy', select: 'name email' },
     { path: 'updatedBy', select: 'name email' },
@@ -89,6 +104,7 @@ const queryDeals = async (filter, options) => {
  */
 const getDealById = async (id) => {
   return Deal.findById(id)
+    .populate({ path: 'departments', select: 'name' })
     .populate({ path: 'lead', select: 'firstName lastName email company status phone' })
     .populate({ path: 'createdBy', select: 'name email' })
     .populate({ path: 'updatedBy', select: 'name email' });

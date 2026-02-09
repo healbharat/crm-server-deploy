@@ -13,30 +13,32 @@ const protect = (req, res, next) => {
       return res.status(401).json({ message });
     }
 
-    // Check if any of the user's roles is superAdmin
+    // Check if any of the user's roles is superAdmin or Admin
     const isSuperAdmin = user.roles.some((role) => role.roleName === 'SuperAdmin');
+    const isAdmin = user.roles.some((role) => role.roleName === 'Admin');
 
     // Attach the authenticated user to the request object
     req.user = user;
 
+    // Set user role for query filtering
     if (isSuperAdmin) {
-      const selectedOrgId = req.headers['x-org-id'];
-
-      // Only set req.orgId if x-org-id is provided (i.e., if an organization is selected)
-      if (selectedOrgId) {
-        mongoose.Query.prototype.options.reqUserRole = '';
-        req.orgId = selectedOrgId;
-        mongoose.Query.prototype.reqOrgId = req.orgId;
-      } else {
-        // No orgId in headers means unrestricted access for SuperAdmin
-        mongoose.Query.prototype.reqOrgId = null;
-        mongoose.Query.prototype.options.reqUserRole = 'SuperAdmin';
-      }
+      mongoose.Query.prototype.options.reqUserRole = 'SuperAdmin';
+      mongoose.Query.prototype.options.skipDepartmentCheck = true;
+    } else if (isAdmin) {
+      mongoose.Query.prototype.options.reqUserRole = 'Admin';
+      mongoose.Query.prototype.options.skipDepartmentCheck = true;
     } else {
-      // Other users have their orgId added to queries by default
-      req.orgId = user.orgId.id.toString();
-      mongoose.Query.prototype.reqOrgId = req.orgId;
+      // Regular users - set department-based filtering
       mongoose.Query.prototype.options.reqUserRole = '';
+      mongoose.Query.prototype.options.skipDepartmentCheck = false;
+      
+      // Set user's department(s) for query filtering
+      if (user.department) {
+        const departments = Array.isArray(user.department) ? user.department : [user.department];
+        mongoose.Query.prototype.options.reqDepartments = departments.map(d => 
+          typeof d === 'object' ? d._id || d.id : d
+        );
+      }
     }
 
     next();

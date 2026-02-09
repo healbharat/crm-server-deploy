@@ -15,11 +15,7 @@ const { OAuth2Client } = require('google-auth-library');
 const { aggregateUserPermissions } = require('../utils/roleUtils');
 
 const registerUser = async (userData) => {
-  const { name, email, password, organizationName, organizationPhone, address = {} } = userData;
-  let org = await Organization.findOne({ organizationName }).setOptions({
-    skipOrgIdCheck: true,
-  });
-  const orgExists = !!org;
+  const { name, email, password, department, address = {} } = userData;
   
   const userExists = await User.findOne({ email }).setOptions({
     skipOrgIdCheck: true,
@@ -30,35 +26,19 @@ const registerUser = async (userData) => {
   
   let role;
   // Only create organization if it doesn't exist
-  if (!orgExists) {
-    org = await Organization.create({
-      organizationName,
-      organizationPhone,
-      address,
-      email,
-    });
 
-    org.orgId = org._id;
-    await org.save();
-    role = await Role.findOne({ roleName: 'Admin' }).setOptions({
+  role = await Role.findOne({ roleName: 'User' }).setOptions({
       skipOrgIdCheck: true,
     });
-  }else{
-
-    role = await Role.findOne({ roleName: 'User' }).setOptions({
-      skipOrgIdCheck: true,
-    });
-  }
   
 
   const user = await User.create({
     name,
     email,
     password,
-    orgId: org._id,
+    department,
     roles: [role._id],
-    isOwner: !orgExists, // Only set as owner if org was newly created
-    status: orgExists ? 'Inactive' : 'Active', // Set status to Inactive if org already exists
+    status: 'Inactive'
   });
 
   // await createDefaultPipelinesForOrg(org._id, user._id);
@@ -66,7 +46,7 @@ const registerUser = async (userData) => {
     id: user._id,
     name: user.name,
     email: user.email,
-    orgId: user.orgId,
+    department: user.department,
   };
 };
 
