@@ -131,7 +131,10 @@ const queryUsers = async (filter, options) => {
  * @returns {Promise<User>}
  */
 const getUserById = async (id) => {
-  return User.findById(id).populate({path:'roles',select:'roleName'}).populate('orgId');
+  return User.findById(id)
+    .populate({path:'roles',select:'roleName'})
+    .populate({path:'department',select:'name id'})
+    .populate('orgId');
 };
 
 /**

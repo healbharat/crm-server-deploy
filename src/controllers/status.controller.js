@@ -7,7 +7,6 @@ const { applyFilter } = require('../utils/filterUtils');
 
 const createStatus = catchAsync(async (req, res) => {
   req.body.createdBy = req.user._id;
-  req.body.orgId = req.orgId || req.user.orgId.id;
   const status = await statusService.createStatus(req.body);
   res.status(httpStatus.CREATED).send(status);
 });

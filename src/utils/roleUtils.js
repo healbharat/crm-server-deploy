@@ -131,13 +131,13 @@ const getUserDataAccess = (userRoles, userId, userDepartment = null, isManager =
     };
   }
 
-  // Check for global access (SuperAdmin only)
-  if (hasPermission(userRoles, 'canViewOrganizations')) {
+  // Check for global access (SuperAdmin by role name or permission)
+  if (hasRole(userRoles, 'SuperAdmin') || hasPermission(userRoles, 'canViewOrganizations')) {
     return { scope: 'global', userIds: null, departments: null };
   }
 
-  // Check for admin access (can see all data)
-  if (hasPermission(userRoles, 'canViewOwnOrganization')) {
+  // Check for admin access (Admin by role name or permission)
+  if (hasRole(userRoles, 'Admin') || hasPermission(userRoles, 'canViewOwnOrganization')) {
     return { scope: 'admin', userIds: null, departments: null };
   }
 

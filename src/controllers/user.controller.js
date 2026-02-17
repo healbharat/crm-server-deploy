@@ -9,7 +9,6 @@ const mongoose = require('mongoose');
 
 const createUser = catchAsync(async (req, res) => {
   req.body.createdBy = req.user._id;
-  req.body.orgId = req.orgId || req.user.orgId.id;
   const user = await userService.createUser(req.body);
   // if (user.status === 'Invited') {
   //   const userInviteToken = await tokenService.generateUserInviteToken(user);
@@ -119,11 +118,18 @@ const getUsers = catchAsync(async (req, res) => {
     if (!options.sortBy) {
       options.sortBy = 'updatedAt:desc';
     }
+    options.populate = [
+      {path: 'roles', select: 'roleName id'},
+      {path: 'department', select: 'name id'}
+    ];
     const result = await userService.queryUsers(filter, options);
     res.send(result);
   } else {
     filter.status = { $ne: 'Deleted' };
-    options.populate = [{path: 'roles', select: 'roleName id'}];
+    options.populate = [
+      {path: 'roles', select: 'roleName id'},
+      {path: 'department', select: 'name id'}
+    ];
     const result = await userService.queryUsers(filter, options);
     res.send(result);
   }

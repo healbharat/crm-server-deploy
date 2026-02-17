@@ -24,9 +24,11 @@ const protect = (req, res, next) => {
     if (isSuperAdmin) {
       mongoose.Query.prototype.options.reqUserRole = 'SuperAdmin';
       mongoose.Query.prototype.options.skipDepartmentCheck = true;
+      mongoose.Query.prototype.options.reqDepartments = []; // Clear departments for SuperAdmin
     } else if (isAdmin) {
       mongoose.Query.prototype.options.reqUserRole = 'Admin';
       mongoose.Query.prototype.options.skipDepartmentCheck = true;
+      mongoose.Query.prototype.options.reqDepartments = []; // Clear departments for Admin
     } else {
       // Regular users - set department-based filtering
       mongoose.Query.prototype.options.reqUserRole = '';
@@ -38,6 +40,8 @@ const protect = (req, res, next) => {
         mongoose.Query.prototype.options.reqDepartments = departments.map(d => 
           typeof d === 'object' ? d._id || d.id : d
         );
+      } else {
+        mongoose.Query.prototype.options.reqDepartments = [];
       }
     }
 
