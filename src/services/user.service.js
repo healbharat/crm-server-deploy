@@ -171,33 +171,26 @@ const getAllUsers = async (filter = {}) => {
 
 const getTeamUsers = async (userId) => {
   try {
-    // Get the current user first
-    const currentUser = await User.findById(userId);
+    // Get the current user with their department
+    const currentUser = await User.findById(userId).populate('department');
     if (!currentUser) {
       return [];
     }
 
-    const teams = await Team.find({ members: userId }).populate('members');
-    
-    // Flatten the members array and ensure unique members using Set
-    const teamMembers = teams.flatMap((team) => team.members);
-    
-    // Create a Set to ensure uniqueness based on user ID
-    const uniqueUsersMap = new Map();
-    
-    // Add current user first
-    uniqueUsersMap.set(currentUser._id.toString(), currentUser);
-    
-    // Add team members
-    teamMembers.forEach(member => {
-      if (member && member._id) {
-        uniqueUsersMap.set(member._id.toString(), member);
-      }
+    // If user doesn't have a department, return only the user
+    if (!currentUser.department) {
+      return [currentUser];
+    }
+
+    // Find all users in the same department
+    const departmentUsers = await User.find({ 
+      department: currentUser.department._id,
+      status: { $ne: 'Deleted' }
     });
     
-    return Array.from(uniqueUsersMap.values());
+    return departmentUsers;
   } catch (error) {
-    console.error("Error fetching team members:", error);
+    console.error("Error fetching department users:", error);
     return [];
   }
 };

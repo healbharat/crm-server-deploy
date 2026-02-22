@@ -14,7 +14,7 @@ router
   .get(protect, checkPermissions(['canViewUsers']), validate(userValidation.getUsers), userController.getUsers);
 
 router.get('/all-users', protect, checkPermissions(['canViewUsers', 'canManageTeams']), userController.getAllUsers);
-router.get('/team-users', protect, checkPermissions(['canViewUsers', 'canManageTasks']), userController.getTeamUsers);
+router.get('/team-users', protect, checkPermissions(['canViewTeamUsers']), userController.getTeamUsers);
 router.get('/normal-users', protect, checkPermissions(['canViewUsers', 'canManageTeams']), userController.getAllNormalUsers);
 router.get('/roles', protect, checkPermissions(['canViewRoles']), userController.getRoles);
 router.get('/all-roles', protect, checkPermissions(['canViewRoles']), userController.getAllRoles);

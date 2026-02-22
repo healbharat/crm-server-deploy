@@ -7,3 +7,4 @@ module.exports.Department = require('./department.model');
 module.exports.Lead = require('./lead.model');
 module.exports.Deal = require('./deal.model');
 module.exports.Status = require('./status.model');
+module.exports.Task = require('./task.model');
