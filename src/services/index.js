@@ -8,3 +8,4 @@ module.exports.departmentService = require('./department.service');
 module.exports.leadService = require('./lead.service');
 module.exports.dealService = require('./deal.service');
 module.exports.statusService = require('./status.service');
+module.exports.analyticsService = require('./analytics.service');

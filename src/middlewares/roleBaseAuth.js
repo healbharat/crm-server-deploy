@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
 const { userRoleService } = require('../services');
-const { Department } = require('../models');
+const { Department, Team } = require('../models');
 
 /**
  * Middleware to add role-based filters to queries
@@ -82,7 +82,7 @@ const addRoleBasedFilters = async (req, res, next) => {
 };
 
 /**
- * Check if user is a department manager
+ * Check if user is a department manager or team manager
  * @param {Object} user - User object
  * @returns {Promise<boolean>}
  */
@@ -95,15 +95,22 @@ const isDepartmentManager = async (user) => {
       return false;
     }
 
+    // Check if user is a department manager
     const department = await Department.findById(userDepartment).select('managers');
     
-    if (!department) {
-      return false;
+    if (department && department.managers.some(managerId => managerId.toString() === userId.toString())) {
+      return true;
     }
 
-    return department.managers.some(managerId => managerId.toString() === userId.toString());
+    // Check if user is a team manager
+    // Skip orgId check since we're checking across all teams for this user
+    const teamCount = await Team.countDocuments({
+      managers: userId
+    }).setOptions({ skipOrgIdCheck: true });
+
+    return teamCount > 0;
   } catch (error) {
-    console.error('Error checking department manager status:', error);
+    console.error('Error checking department/team manager status:', error);
     return false;
   }
 };

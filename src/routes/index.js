@@ -5,6 +5,7 @@ const leadRoute = require('./lead.route.js');
 const dealRoute = require('./deal.route.js');
 const statusRoute = require('./status.route.js');
 const departmentRoute = require('./department.route.js');
+const analyticsRoute = require('./analytics.route.js');
 
 const router = express.Router();
 
@@ -32,6 +33,10 @@ const defaultRoutes = [
   {
     path: '/statuses',
     route: statusRoute,
+  },
+  {
+    path: '/analytics',
+    route: analyticsRoute,
   },
 ];
 

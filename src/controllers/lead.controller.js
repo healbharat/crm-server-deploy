@@ -20,7 +20,7 @@ const createLead = catchAsync(async (req, res) => {
 
 const getLeads = catchAsync(async (req, res) => {
   let filter = { 
-    ...pick(req.query, ['query', 'status', 'source', 'assignedTo', 'isConverted', 'searchTerm']) 
+    ...pick(req.query, ['query', 'status', 'source', 'assignedTo', 'createdBy', 'isConverted', 'searchTerm']) 
   };
   
   // Apply department-based access control
@@ -118,9 +118,10 @@ function checkLeadAccess(lead, user, queryFilters) {
   
   // Check if lead is in user's department
   const leadDepartments = lead.departments || [];
-  const isInUserDepartment = leadDepartments.some(
-    dept => dept.toString() === userDepartment?.toString()
-  );
+  const isInUserDepartment = leadDepartments.some(dept => {
+    const deptId = dept._id || dept;
+    return deptId.toString() === userDepartment?.toString();
+  });
   
   // Department manager can access all leads in their department
   if (accessLevel === 'department' && isInUserDepartment) {

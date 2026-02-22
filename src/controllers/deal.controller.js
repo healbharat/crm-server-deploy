@@ -98,9 +98,10 @@ function checkDealAccess(deal, user, queryFilters) {
   
   // Check if deal is in user's department
   const dealDepartments = deal.departments || [];
-  const isInUserDepartment = dealDepartments.some(
-    dept => dept.toString() === userDepartment?.toString()
-  );
+  const isInUserDepartment = dealDepartments.some(dept => {
+    const deptId = dept._id || dept;
+    return deptId.toString() === userDepartment?.toString();
+  });
   
   // Department manager can access all deals in their department
   if (accessLevel === 'department' && isInUserDepartment) {
