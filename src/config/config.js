@@ -31,7 +31,8 @@ if (error) {
 }
 
 // Logic to handle database name suffix and fix common Atlas URI formatting issues
-let mongodbUrl = (envVars.MONGODB_URL || '').replace(/[\s\n\r\t]/g, '').trim();
+// AGGRESSIVE CLEANUP: Remove ANY character that is not a standard printable ASCII URI character (0x21-0x7E)
+let mongodbUrl = (envVars.MONGODB_URL || '').replace(/[^\x21-\x7E]/g, '');
 
 // 1. Auto-fix: Ensure the '@' symbol is present in Atlas URIs (common copy-paste error)
 if (mongodbUrl.startsWith('mongodb+srv://') && !mongodbUrl.includes('@')) {
