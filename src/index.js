@@ -9,7 +9,7 @@ const MONGO_URI = config.mongoose.url;
 let server;
 
 (async () => {
-  await connectDB(MONGO_URI);
+  await connectDB(MONGO_URI, config.mongoose.options);
   server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });

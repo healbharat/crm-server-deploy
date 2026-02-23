@@ -8,7 +8,7 @@ const envVarsSchema = Joi.object()
   .keys({
     NODE_ENV: Joi.string().valid('production', 'development', 'test').default('development'),
     PORT: Joi.number().default(3000),
-    MONGODB_URL: Joi.string().required().description('Mongo DB url'),
+    MONGODB_URL: Joi.string().trim().required().description('Mongo DB url'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
@@ -21,9 +21,6 @@ const envVarsSchema = Joi.object()
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
     MAILHOG_ENABLE: Joi.boolean().description('Must be True or False'),
     DOMAIN_URL: Joi.string().description('Domain url'),
-    // STRIPE_SECREATE_KEY: Joi.string().description('stripe secrate key'),
-    // GOOGLE_RECAPTCHA_KEY: Joi.string().description('reCaptcha secrate key'),
-    // REDIS_URL: Joi.string().description('redis url'),
   })
   .unknown();
 
@@ -33,20 +30,28 @@ if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
 
+// Logic to handle database name suffix for testing without breaking query parameters
+let mongodbUrl = envVars.MONGODB_URL;
+if (envVars.NODE_ENV === 'test') {
+  if (mongodbUrl.includes('?')) {
+    const [baseUrl, queryParams] = mongodbUrl.split('?');
+    mongodbUrl = `${baseUrl}-test?${queryParams}`;
+  } else {
+    mongodbUrl = `${mongodbUrl}-test`;
+  }
+}
+
 module.exports = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
   resetPasswordUrl: envVars.DOMAIN_URL,
   domainUrl: envVars.DOMAIN_URL,
-  // stripeSecrateKey : envVars.STRIPE_SECREATE_KEY,
-  // googleReCaptchaKey : envVars.GOOGLE_RECAPTCHA_KEY,
-  // redisUrl: envVars.REDIS_URL,
   mongoose: {
-    url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
+    url: mongodbUrl,
     options: {
-      useCreateIndex: true,
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      autoIndex: true,
     },
   },
   jwt: {
@@ -56,5 +61,5 @@ module.exports = {
     resetPasswordExpirationMinutes: envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
     verifyEmailExpirationMinutes: envVars.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES,
   }
- 
+
 };
