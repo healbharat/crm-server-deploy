@@ -19,7 +19,10 @@ require('./config/passport')(passport);
 
 // Middlewares
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: 'https://pn1crmsoftware.web.app',
+  optionsSuccessStatus: 200
+}));
 app.options('*', cors());
 app.use(express.json());
 if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
