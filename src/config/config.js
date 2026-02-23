@@ -30,8 +30,44 @@ if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
 
-// Logic to handle database name suffix for testing without breaking query parameters
+// Logic to handle database name suffix and fix common Atlas URI formatting issues
 let mongodbUrl = envVars.MONGODB_URL;
+
+// 1. Auto-fix: Ensure the '@' symbol is present in Atlas URIs (common copy-paste error)
+if (mongodbUrl.startsWith('mongodb+srv://') && !mongodbUrl.includes('@')) {
+  // It's likely of the form mongodb+srv://user:passhostname
+  const parts = mongodbUrl.replace('mongodb+srv://', '').split('/');
+  const credentialsAndHost = parts[0];
+
+  // Attempt to find where credentials end (after the first colon)
+  const firstColonIndex = credentialsAndHost.indexOf(':');
+  if (firstColonIndex !== -1) {
+    // We have user:passwordhostname
+    // We look for where the password ends. Host in Atlas usually ends in .mongodb.net
+    const hostSuffix = '.mongodb.net';
+    const hostSuffixIndex = credentialsAndHost.indexOf(hostSuffix);
+
+    if (hostSuffixIndex !== -1) {
+      // Find the beginning of the hostname (e.g., heal-bharat-db or cluster0)
+      // We know it's after the colon
+      const passwordPart = credentialsAndHost.substring(firstColonIndex + 1);
+      // This is tricky. Let's assume the host starts at the first alphanumeric char after the password.
+      // But wait, the hostname is usually everything before .mongodb.net.
+      // Let's find the start of the host by looking for the last segment.
+      const hostStartMatch = credentialsAndHost.match(/[a-zA-Z0-9-]+\.mongodb\.net/);
+
+      if (hostStartMatch) {
+        const hostStart = hostStartMatch.index;
+        const credentials = credentialsAndHost.substring(0, hostStart);
+        const host = credentialsAndHost.substring(hostStart);
+        parts[0] = `${credentials}@${host}`;
+        mongodbUrl = 'mongodb+srv://' + parts.join('/');
+        console.log('NOTICE: Automatically fixed missing @ in MONGODB_URL.');
+      }
+    }
+  }
+}
+
 if (envVars.NODE_ENV === 'test') {
   if (mongodbUrl.includes('?')) {
     const [baseUrl, queryParams] = mongodbUrl.split('?');
