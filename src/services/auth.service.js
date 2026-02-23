@@ -16,21 +16,21 @@ const { aggregateUserPermissions } = require('../utils/roleUtils');
 
 const registerUser = async (userData) => {
   const { name, email, password, department, address = {} } = userData;
-  
+
   const userExists = await User.findOne({ email }).setOptions({
     skipOrgIdCheck: true,
   });
   if (userExists) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
-  
+
   let role;
   // Only create organization if it doesn't exist
 
   role = await Role.findOne({ roleName: 'User' }).setOptions({
-      skipOrgIdCheck: true,
-    });
-  
+    skipOrgIdCheck: true,
+  });
+
 
   const user = await User.create({
     name,
@@ -38,7 +38,7 @@ const registerUser = async (userData) => {
     password,
     department,
     roles: [role._id],
-    status: 'Inactive'
+    status: 'Active'
   });
 
   // await createDefaultPipelinesForOrg(org._id, user._id);
@@ -99,7 +99,7 @@ const refreshAuth = async (refreshToken) => {
   try {
     const refreshTokenDoc = await tokenService.verifyToken(refreshToken, tokenTypes.REFRESH);
     mongoose.Query.prototype.reqOrgId = refreshTokenDoc.orgId;
-    const user = await User.findOne({_id: refreshTokenDoc.sub});
+    const user = await User.findOne({ _id: refreshTokenDoc.sub });
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
     }
@@ -216,7 +216,7 @@ const googleLoginUser = async (googleToken) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Login user is not active');
   }
   const tokens = await tokenService.generateAuthTokens(user);
-  
+
   // Aggregate permissions from all user roles
   const aggregatedPermissions = await aggregateUserPermissions(user.roles);
 
